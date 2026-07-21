@@ -1,0 +1,73 @@
+# Dependencies & build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials.json
+**/secrets/**
+
+# Packed / signed extension artifacts (never publish private keys)
+*.crx
+*.zip
+dist.crx
+dist.pem
+dist.zip
+joblens-v*-cws.zip
+
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.local
+*.log
+.vscode/
+.idea/
+*.swp
+*~
+
+# Cursor / local agent tooling (not part of the product)
+.agents/
+skills-lock.json
+.cursor/
+AGENTS.md
+
+# Local debug dumps (may contain PII / API-adjacent data)
+debug-reports/
+
+# Scraped HTML samples & private listing dumps (may contain third-party content / PII)
+job-listing-examples/
+
+# Internal planning / policy dumps / changelog scratchpads
+version*-notes-and-changes.md
+Chrome-Web-Store-Policies.md
+project_spec.md
+Indeed-and-ZipRecruiter-HTML-Guide.md
+
+# Legacy pre-Vite extension root (superseded by src/ + manifest.config.ts)
+content.js
+popup.html
+popup.js
+popup.css
+markdown-render.js
+verify-scraper.js
+test-fixture.html
+/manifest.json
+
+# Unused / alternate local assets
+images/
+
+# Store screenshot captures
+store-assets/
+
+
+# Visual Studio files
+.vs/
+
+# Chrome Store publishing information
+CHROMEWEBSTORE.md

@@ -1,0 +1,51 @@
+/*
+  JobLens brand palette.
+  Tuned for readability vs the raw brand brief:
+  - Primary buttons use sky blue with navy label text (white-on-sky fails contrast).
+  - Hover uses digital purple with white label text.
+  - Success text is a deeper sky-derived teal so status copy stays readable on light backgrounds.
+  - Alert surfaces use soft violet tints with reddish-violet text (not harsh red).
+  - Nav stays midnight navy; the active tab still blends into the page background with a purple accent.
+*/
+
+:root {
+  --popup-width: 440px;
+  --popup-height: 600px;
+  --color-bg: #f9f9fc;
+  --color-surface: #ffffff;
+  --color-text: #2d2c4d;
+  --color-text-secondary: #5c5b78;
+  --color-muted: #7a7994;
+  --color-border: #d8d7e5;
+  --color-heading: #04032b;
+  --color-nav-track: #04032b;
+  --color-nav-text: rgba(249, 249, 252, 0.72);
+  --color-nav-text-hover: #f9f9fc;
+  --color-nav-hover-bg: rgba(255, 255, 255, 0.1);
+  --color-nav-active: #6214cb;
+  --color-primary: #28c8fd;
+  --color-primary-hover: #6214cb;
+  --color-primary-fg: #04032b;
+  --color-primary-fg-hover: #ffffff;
+  --color-accent: #6eb6d9;
+  --color-accent-hover: #4f9fbf;
+  --color-accent-fg: #04032b;
+  --color-focus: #6214cb;
+  --color-success: #0b8fb5;
+  --color-tag: #8c21dc;
+  --color-warning-bg: #f7edff;
+  --color-warning-text: #8c21dc;
+  --color-warning-border: #d4a8f5;
+  --color-info-bg: #eaf9ff;
+  --color-info-border: #9fe4fb;
+  --color-info-text: #045f7a;
+  --color-download-bg: #eaf9ff;
+  --color-download-hover: #d2f2fd;
+  --color-download-text: #045f7a;
+  --color-secondary-btn: #ecebf4;
+  --color-header-btn-hover: #f0eff8;
+  --color-version: #9a99b0;
+  --radius: 6px;
+  --font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: Consolas, "Courier New", monospace;
+}

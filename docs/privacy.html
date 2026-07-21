@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy — JobLens</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --text: #0f172a;
+        --muted: #334155;
+        --link: #0369a1;
+        --bg: #f8fafc;
+        --border: #e2e8f0;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        line-height: 1.55;
+        color: var(--text);
+        background: var(--bg);
+      }
+      main {
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: 2.5rem 1.25rem 4rem;
+      }
+      h1 {
+        font-size: 1.85rem;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.35rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 1.75rem 0 0.55rem;
+      }
+      p,
+      li {
+        color: var(--muted);
+      }
+      .meta {
+        color: #64748b;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+      }
+      a {
+        color: var(--link);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+        margin: 0.75rem 0 1rem;
+        background: #fff;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.55rem 0.65rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f1f5f9;
+      }
+      nav {
+        margin-bottom: 1.25rem;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <nav><a href="index.html">← JobLens</a></nav>
+      <h1>Privacy Policy for JobLens</h1>
+      <p class="meta">Last updated: 2026-07-21</p>
+
+      <p>
+        JobLens is a browser extension that helps you evaluate how well a job
+        listing matches your profile and preferences using an AI provider API key
+        that you provide (bring your own key).
+      </p>
+
+      <h2>What Data We Collect</h2>
+      <p>
+        JobLens collects and stores the following information
+        <strong>on your device only</strong> (via Chrome’s local extension
+        storage):
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              Profile (skills, work experience, projects, education,
+              certifications, optional notes, optional resume text extracted from
+              a PDF you upload)
+            </td>
+            <td>Compatibility checks and resume-assisted profile fill</td>
+          </tr>
+          <tr>
+            <td>
+              Job preferences (minimum pay, commute, remote work, schedule, job
+              type)
+            </td>
+            <td>Local pre-checks and compatibility analysis</td>
+          </tr>
+          <tr>
+            <td>
+              AI settings (provider choice, model name, and your API key)
+            </td>
+            <td>
+              Sending requests you initiate to your chosen AI provider
+            </td>
+          </tr>
+          <tr>
+            <td>Extracted job listing data from pages you check</td>
+            <td>Running checks and showing results</td>
+          </tr>
+          <tr>
+            <td>Compatibility reports and follow-up Q&amp;A history</td>
+            <td>Showing past results in History</td>
+          </tr>
+          <tr>
+            <td>Privacy acknowledgment and onboarding flags</td>
+            <td>
+              Remembering that you accepted the in-product notice and completed
+              or skipped setup
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        JobLens does <strong>not</strong> run analytics, advertising, or remote
+        telemetry. Developer-only debug tools (when enabled in local builds) stay
+        on your device and are not included in store releases.
+      </p>
+
+      <h2>How Data Is Stored</h2>
+      <ul>
+        <li>
+          All of the data above is stored locally using
+          <code>chrome.storage.local</code>.
+        </li>
+        <li>JobLens does <strong>not</strong> use <code>chrome.storage.sync</code>.</li>
+        <li>
+          JobLens does <strong>not</strong> operate its own backend server that
+          receives your profile, resume, job listings, or API keys.
+        </li>
+      </ul>
+
+      <h2>How Data Is Used</h2>
+      <p>
+        Data is used only to provide JobLens’s single purpose: checking job
+        listing compatibility with your profile and preferences, including related
+        features such as resume-assisted profile fill, local history, and optional
+        follow-up questions about a saved report.
+      </p>
+
+      <h2>Data Sent Off Your Device</h2>
+      <p>
+        When <strong>you</strong> start one of these actions, JobLens sends
+        relevant data over HTTPS to the AI provider <strong>you</strong>
+        selected:
+      </p>
+      <ol>
+        <li>
+          <strong>Compatibility check</strong> — profile, preferences, and job
+          listing text/metadata from the active tab
+        </li>
+        <li>
+          <strong>Fill from resume</strong> — resume text extracted locally from
+          a PDF you choose
+        </li>
+        <li>
+          <strong>Follow-up questions</strong> on a saved report — conversation
+          context needed to answer your question
+        </li>
+        <li>
+          <strong>Model list refresh</strong> (Settings) — your API key, only to
+          list available models from that provider
+        </li>
+      </ol>
+      <p>Supported providers (you choose one):</p>
+      <ul>
+        <li>
+          <a href="https://openai.com/privacy/">OpenAI</a>
+          (<code>api.openai.com</code>)
+        </li>
+        <li>
+          <a href="https://www.anthropic.com/privacy">Anthropic</a>
+          (<code>api.anthropic.com</code>)
+        </li>
+        <li>
+          <a href="https://policies.google.com/privacy">Google Gemini</a>
+          (<code>generativelanguage.googleapis.com</code>)
+        </li>
+      </ul>
+      <p>
+        Your API key is included only in requests to the provider you configured.
+        JobLens does not send your data to any other third party for advertising,
+        brokerage, credit decisions, or unrelated analytics.
+      </p>
+      <p>
+        Before the first compatibility check or resume extraction, JobLens shows
+        an in-product notice and requires your acknowledgment.
+      </p>
+
+      <h2>Website Content Access</h2>
+      <p>
+        On supported job sites (GovernmentJobs, Indeed, ZipRecruiter, LinkedIn),
+        JobLens may inject a content script that stays idle until you run a check.
+        On other sites, when you click <strong>Check Job Compatibility</strong>,
+        JobLens may temporarily read the active tab (with your gesture) to extract
+        listing text. Page content is used only for that user-initiated feature.
+      </p>
+
+      <h2>Data Sharing</h2>
+      <ul>
+        <li>JobLens does <strong>not</strong> sell user data.</li>
+        <li>
+          JobLens does <strong>not</strong> share data with advertising platforms,
+          data brokers, or information resellers.
+        </li>
+        <li>
+          The only off-device recipients are the AI provider you choose, solely to
+          perform the request you started.
+        </li>
+      </ul>
+
+      <h2>Limited Use</h2>
+      <p>
+        The use of information received from Google APIs will adhere to the Chrome
+        Web Store User Data Policy, including the Limited Use requirements.
+      </p>
+      <p>
+        More generally, JobLens limits use of user data to providing or improving
+        its disclosed single purpose (job compatibility checking and related
+        on-device features). JobLens does not use or transfer user data for
+        personalized ads, sale to data brokers, or creditworthiness/lending
+        purposes.
+      </p>
+
+      <h2>Data Retention and Deletion</h2>
+      <ul>
+        <li>
+          Data remains on your device until you clear it or uninstall the
+          extension.
+        </li>
+        <li>Uninstalling JobLens removes its local extension storage.</li>
+        <li>
+          You can change or overwrite profile, preferences, API key, and history
+          from within the extension UI.
+        </li>
+      </ul>
+
+      <h2>Children’s Privacy</h2>
+      <p>
+        JobLens is not directed at children and is intended for adults evaluating
+        employment opportunities.
+      </p>
+
+      <h2>Changes to This Policy</h2>
+      <p>
+        If JobLens’s data practices change, this policy will be updated and the
+        “Last updated” date revised. Material changes will also be reflected in
+        the Chrome Web Store privacy disclosures and, when appropriate, in the
+        in-product notice.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Privacy questions:
+        <a href="mailto:joblenscontact@gmail.com">joblenscontact@gmail.com</a>
+      </p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+/*
+  Legacy slate/blue theme (pre-JobLens palette).
+  To restore: in theme.config.css, comment out the joblens import and
+  uncomment the legacy-slate import.
+*/
+
+:root {
+  --popup-width: 440px;
+  --popup-height: 600px;
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-muted: #6b7280;
+  --color-border: #d1d5db;
+  --color-heading: #1f2937;
+  --color-nav-track: #e8edf3;
+  --color-nav-text: #6b7280;
+  --color-nav-text-hover: #1f2937;
+  --color-nav-hover-bg: rgba(255, 255, 255, 0.5);
+  --color-nav-active: #1f2937;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-fg: #ffffff;
+  --color-primary-fg-hover: #ffffff;
+  --color-accent: #93c5fd;
+  --color-accent-hover: #60a5fa;
+  --color-accent-fg: #1e3a8a;
+  --color-focus: #2563eb;
+  --color-success: #047857;
+  --color-tag: #7c3aed;
+  --color-warning-bg: #fef2f2;
+  --color-warning-text: #b91c1c;
+  --color-warning-border: #fca5a5;
+  --color-info-bg: #eff6ff;
+  --color-info-border: #bfdbfe;
+  --color-info-text: #1e40af;
+  --color-download-bg: #d1fae5;
+  --color-download-hover: #a7f3d0;
+  --color-download-text: #065f46;
+  --color-secondary-btn: #e5e7eb;
+  --color-header-btn-hover: #f3f4f6;
+  --color-version: #9ca3af;
+  --radius: 6px;
+  --font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: Consolas, "Courier New", monospace;
+}

@@ -1,0 +1,31 @@
+{
+  "name": "joblens",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "JobLens — AI-powered job compatibility check using your own API key.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "package:store": "npm run build && node scripts/package-extension.mjs"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^6.1.200",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.28",
+    "@types/chrome": "^0.0.287",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "happy-dom": "^20.10.6",
+    "typescript": "^5.7.3",
+    "vite": "^5.4.14",
+    "vitest": "^2.1.8"
+  }
+}

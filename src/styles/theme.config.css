@@ -1,0 +1,11 @@
+/*
+  Visual configuration — theme tokens live in ./themes/.
+
+  Active theme: JobLens
+  To revert to the previous slate/blue palette quickly:
+    1. Comment out the joblens import below
+    2. Uncomment the legacy-slate import
+*/
+
+/* @import "./themes/joblens.css"; */
+@import "./themes/legacy-slate.css";

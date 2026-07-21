@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JobLens</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --text: #0f172a;
+        --muted: #475569;
+        --link: #0369a1;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        line-height: 1.55;
+        color: var(--text);
+        background: linear-gradient(180deg, #e0f2fe 0%, var(--bg) 28%);
+      }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 3rem 1.25rem 4rem;
+      }
+      h1 {
+        font-size: 2rem;
+        letter-spacing: -0.03em;
+        margin: 0 0 0.5rem;
+      }
+      p {
+        color: var(--muted);
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.35rem;
+        margin-top: 1.5rem;
+      }
+      a {
+        color: var(--link);
+      }
+      ul {
+        margin: 0.5rem 0 0;
+        padding-left: 1.2rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>JobLens</h1>
+      <p>
+        A Chrome / Edge extension that checks how well a job listing matches your
+        profile and preferences using your own AI API key (OpenAI, Anthropic, or
+        Google Gemini).
+      </p>
+
+      <div class="card">
+        <strong>Links</strong>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <strong>Limited Use</strong>
+        <p style="margin: 0.65rem 0 0">
+          The use of information received from Google APIs will adhere to the
+          Chrome Web Store User Data Policy, including the Limited Use
+          requirements.
+        </p>
+        <p style="margin: 0.65rem 0 0">
+          JobLens uses user data only to provide its single purpose—job
+          compatibility checking and related features you initiate—and does not
+          sell user data or use it for advertising or credit decisions.
+        </p>
+      </div>
+    </main>
+  </body>
+</html>
