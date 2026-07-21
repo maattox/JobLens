@@ -18,7 +18,7 @@ JobLens is not affiliated with or endorsed by Indeed, GovernmentJobs, ZipRecruit
 Compatibility checks and resume extraction send your profile, preferences, and job listing or resume text to the AI provider you select. You must acknowledge this before those actions. Keys and profile data stay in `chrome.storage.local` on your device.
 
 - Policy (markdown): [docs/privacy.md](docs/privacy.md)
-- Policy (HTML for GitHub Pages): [docs/privacy.html](docs/privacy.html)
+- Policy (HTML page): [privacy.html](https://maattox.github.io/JobLens/privacy.html)
 
 ## Project structure
 
