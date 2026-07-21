@@ -67,14 +67,23 @@ export function classifyAiError(
 
   if (status === 401 || status === 403) return "auth";
   if (status === 429) return "rate_limit";
-  if (status === 0 || messageIncludes(body, "network error", "failed to fetch")) {
+  if (
+    status === 0 ||
+    messageIncludes(body, "network error", "failed to fetch", "request timed out")
+  ) {
     return "network";
   }
 
   if (
     status === 404 ||
     errorCode === "model_not_found" ||
-    messageIncludes(errorMessage, "model not found", "does not exist", "not found")
+    messageIncludes(
+      errorMessage,
+      "model not found",
+      "does not exist",
+      "not found",
+      "does not have access to it"
+    )
   ) {
     return "model_not_found";
   }
@@ -148,11 +157,25 @@ export function misconfiguredMessage(provider: AiProvider): string {
   return `The ${providerLabel} API is misconfigured or unavailable. Double-check your API key in Settings and try again.`;
 }
 
+function timeoutUserMessage(provider: AiProvider): string {
+  const providerLabel =
+    provider === "openai"
+      ? "OpenAI"
+      : provider === "anthropic"
+        ? "Anthropic"
+        : "Google Gemini";
+  return `The ${providerLabel} request timed out. Try again, or switch to a faster model (for example a flash-lite option) in Settings.`;
+}
+
 export function createAiRequestError(
   provider: AiProvider,
   status: number,
   body: string
 ): AiRequestError {
   const kind = classifyAiError(provider, status, body);
-  return new AiRequestError(kind, provider, status, body);
+  const message =
+    kind === "network" && messageIncludes(body, "timed out")
+      ? timeoutUserMessage(provider)
+      : undefined;
+  return new AiRequestError(kind, provider, status, body, message);
 }

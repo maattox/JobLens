@@ -772,6 +772,12 @@ a {
   color: var(--color-warning-text);
 }
 
+.field-success {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--color-success);
+}
+
 .job-meta-list {
   margin: 0;
   display: grid;

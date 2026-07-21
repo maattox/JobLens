@@ -94,6 +94,30 @@ async function persistModel(
   return next;
 }
 
+/** Prefer a single cheaper/faster fallback instead of burning the whole catalog. */
+function pickCapacityFallback(
+  provider: AiProvider,
+  catalog: string[],
+  currentModel: string
+): string | null {
+  const candidates = catalog.filter((model) => model && model !== currentModel);
+  if (!candidates.length) return null;
+
+  const patterns: RegExp[] =
+    provider === "openai"
+      ? [/luna/i, /mini/i, /nano/i]
+      : provider === "anthropic"
+        ? [/haiku/i]
+        : [/flash-lite/i, /lite/i];
+
+  for (const pattern of patterns) {
+    const match = candidates.find((id) => pattern.test(id));
+    if (match) return match;
+  }
+
+  return candidates[0] ?? null;
+}
+
 export interface CallAiProviderOptions {
   /**
    * When true (default), model_not_found replacements are written to aiSettings.
@@ -227,24 +251,26 @@ async function withModelRecovery<T>(
 
     if (error.kind === "capacity") {
       const catalog = await getModelsForProvider(settings.provider);
-      const alternatives = catalog.filter((model) => model !== settings.model);
-      if (!alternatives.length) {
+      const fallback = pickCapacityFallback(
+        settings.provider,
+        catalog,
+        settings.model
+      );
+      if (!fallback) {
         throw error;
       }
 
-      for (const model of alternatives) {
-        try {
-          return await run({ ...settings, model });
-        } catch (retryError) {
-          if (
-            retryError instanceof AiRequestError &&
-            retryError.kind !== "capacity"
-          ) {
-            throw retryError;
-          }
+      try {
+        return await run({ ...settings, model: fallback });
+      } catch (retryError) {
+        if (
+          retryError instanceof AiRequestError &&
+          retryError.kind !== "capacity"
+        ) {
+          throw retryError;
         }
+        throw error;
       }
-      throw error;
     }
 
     throw error;
@@ -291,12 +317,16 @@ export async function callAiProvider(
 
     if (error.kind === "capacity") {
       const catalog = await getModelsForProvider(settings.provider);
-      const alternatives = catalog.filter((model) => model !== settings.model);
-      if (!alternatives.length) {
+      const fallback = pickCapacityFallback(
+        settings.provider,
+        catalog,
+        settings.model
+      );
+      if (!fallback) {
         throw error;
       }
 
-      return tryModels(settings, userPrompt, alternatives);
+      return tryModels(settings, userPrompt, [fallback]);
     }
 
     throw error;

@@ -57,7 +57,7 @@ describe("callCompatibilityAi model recovery", () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          data: [{ id: "gpt-new-model" }],
+          data: [{ id: "gpt-5.6" }, { id: "gpt-5.4-mini" }],
         }),
       })
       .mockResolvedValueOnce({
@@ -81,7 +81,7 @@ describe("callCompatibilityAi model recovery", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(chrome.storage.local.set).toHaveBeenCalledWith({
       [STORAGE_KEYS.aiSettings]: expect.objectContaining({
-        model: "gpt-new-model",
+        model: "gpt-5.6",
       }),
     });
   });

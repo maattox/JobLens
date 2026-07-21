@@ -31,6 +31,10 @@
         letter-spacing: -0.03em;
         margin: 0 0 0.5rem;
       }
+      h2 {
+        font-size: 1.15rem;
+        margin: 0 0 0.65rem;
+      }
       p {
         color: var(--muted);
       }
@@ -44,10 +48,28 @@
       a {
         color: var(--link);
       }
+      ol,
       ul {
         margin: 0.5rem 0 0;
         padding-left: 1.2rem;
         color: var(--muted);
+      }
+      li {
+        margin: 0.35rem 0;
+      }
+      code {
+        font-size: 0.92em;
+        background: #f1f5f9;
+        padding: 0.1em 0.35em;
+        border-radius: 4px;
+      }
+      pre {
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 0.85rem 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 0.9rem;
       }
     </style>
   </head>
@@ -61,9 +83,47 @@
       </p>
 
       <div class="card">
+        <h2>Install in developer mode</h2>
+        <p style="margin: 0">
+          JobLens is not on the Chrome Web Store. Install it unpacked from the
+          latest GitHub Release:
+        </p>
+        <ol>
+          <li>
+            Open the
+            <a href="https://github.com/maattox/JobLens/releases/latest"
+              >latest Release</a
+            >
+          </li>
+          <li>
+            Download the <code>joblens-v*.zip</code> asset (not “Source code”)
+          </li>
+          <li>Unzip it to a folder you will keep</li>
+          <li>
+            Open <code>chrome://extensions</code> (or
+            <code>edge://extensions</code>), enable <strong>Developer mode</strong>,
+            click <strong>Load unpacked</strong>, and select the unzipped folder
+            (it should contain <code>manifest.json</code>)
+          </li>
+          <li>
+            Open JobLens → Settings, add your AI API key, then run a check on a
+            full job listing tab
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
         <strong>Links</strong>
         <ul>
           <li><a href="privacy.html">Privacy Policy</a></li>
+          <li>
+            <a href="https://github.com/maattox/JobLens">GitHub repository</a>
+          </li>
+          <li>
+            <a href="https://github.com/maattox/JobLens/releases/latest"
+              >Latest release</a
+            >
+          </li>
         </ul>
       </div>
 

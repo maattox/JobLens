@@ -1,4 +1,5 @@
 # Dependencies & build
+# dist/ is produced by `npm run build` (Load unpacked from dist/). Not committed.
 node_modules/
 dist/
 *.tsbuildinfo
@@ -18,7 +19,7 @@ credentials.json
 dist.crx
 dist.pem
 dist.zip
-joblens-v*-cws.zip
+joblens-v*.zip
 
 # OS / editor
 .DS_Store

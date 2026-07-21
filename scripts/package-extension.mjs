@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 const root = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const dist = join(root, "dist");
 const version = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
-const zipName = `joblens-v${version}-cws.zip`;
+/** Same zip for Chrome Web Store upload and GitHub Release assets. */
+const zipName = `joblens-v${version}.zip`;
 const zipPath = join(root, zipName);
 
 if (!existsSync(dist)) {

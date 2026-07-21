@@ -12,7 +12,7 @@ describe("callGeminiCompatibility", () => {
     const settings: AiSettings = {
       provider: "gemini",
       apiKey: "test-key",
-      model: "gemini-3.5-flash",
+      model: "gemini-3.6-flash",
     };
 
     const fetchMock = vi.fn().mockResolvedValue({
@@ -41,11 +41,18 @@ describe("callGeminiCompatibility", () => {
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     const body = JSON.parse(String(init.body));
 
+    expect(body.generation_config).toEqual({ thinking_level: "low" });
     expect(body.generation_config?.response_mime_type).toBeUndefined();
     expect(body.response_format).toEqual(
       expect.objectContaining({
         type: "text",
         mime_type: "application/json",
+      })
+    );
+    expect(init.headers).toEqual(
+      expect.objectContaining({
+        "Content-Type": "application/json",
+        "Api-Revision": "2026-05-20",
       })
     );
     expect(body.system_instruction).toBeTruthy();
@@ -56,7 +63,7 @@ describe("callGeminiCompatibility", () => {
     const settings: AiSettings = {
       provider: "gemini",
       apiKey: "test-key",
-      model: "gemini-3.5-flash",
+      model: "gemini-3.6-flash",
     };
 
     vi.stubGlobal(

@@ -51,4 +51,15 @@ describe("toUserMessage", () => {
     const error = createAiRequestError("gemini", 503, '{"error":{"status":"UNAVAILABLE"}}');
     expect(error.message).toContain("busy");
   });
+
+  it("uses a timeout-specific message when the client aborts", () => {
+    const error = createAiRequestError(
+      "gemini",
+      0,
+      "network error: request timed out"
+    );
+    expect(error.kind).toBe("network");
+    expect(error.message).toContain("timed out");
+    expect(error.message).toContain("faster model");
+  });
 });

@@ -3,6 +3,8 @@ import {
   ensureModelCatalog,
   getModelsForProvider,
   refreshProviderCatalog,
+  syncProviderCatalog,
+  clearModelCatalogNotice,
 } from "./ai/catalog";
 import { AiRequestError } from "./ai/errors";
 import { isSessionExpiredError } from "./ai/types";
@@ -62,6 +64,7 @@ import type {
   JobFieldsExtractResult,
   JobObject,
   JobSource,
+  ModelCatalogSyncResult,
   ResumeExtractResult,
   ScrapeResponse,
   ScrapedJobMemory,
@@ -573,7 +576,7 @@ async function handleCompatibilityCheck(
     ),
     getFromStorage<unknown>(STORAGE_KEYS.aiSettings, DEFAULT_AI_SETTINGS),
   ]);
-  const aiSettings = migrateAiSettings(storedAi);
+  let aiSettings = migrateAiSettings(storedAi);
   if (
     typeof storedAi === "object" &&
     storedAi !== null &&
@@ -596,6 +599,29 @@ async function handleCompatibilityCheck(
   if (!aiSettings.apiKey.trim()) {
     debugWarn("background", "check", "Blocked: missing API key");
     return { success: false, error: "MISSING_API_KEY" };
+  }
+
+  try {
+    const sync = await syncProviderCatalog(aiSettings.provider, aiSettings.apiKey, {
+      force: false,
+    });
+    if (sync.modelSwitched) {
+      aiSettings.model = sync.currentModel;
+    }
+    debugInfo("background", "check", "Model catalog sync before check", {
+      provider: sync.provider,
+      changed: sync.changed,
+      modelSwitched: sync.modelSwitched,
+      refreshed: sync.refreshed,
+      model: aiSettings.model,
+    });
+  } catch (error) {
+    debugWarn(
+      "background",
+      "check",
+      "Model catalog sync failed; continuing with cached models",
+      summarizeError(error)
+    );
   }
 
   let job = await extractJobFromTab(await resolveJobTab(tabId));
@@ -864,6 +890,56 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   (async () => {
+    if (message?.type === MSG.SYNC_MODEL_CATALOG) {
+      const storedAi = await getFromStorage<unknown>(
+        STORAGE_KEYS.aiSettings,
+        DEFAULT_AI_SETTINGS
+      );
+      const aiSettings = migrateAiSettings(storedAi);
+      const provider =
+        message.provider === "openai" ||
+        message.provider === "anthropic" ||
+        message.provider === "gemini"
+          ? message.provider
+          : aiSettings.provider;
+      const apiKey =
+        typeof message.apiKey === "string" && message.apiKey.trim()
+          ? message.apiKey.trim()
+          : aiSettings.apiKey;
+
+      if (!apiKey.trim()) {
+        sendResponse({
+          success: false,
+          error: "MISSING_API_KEY",
+        } satisfies { success: false; error: string });
+        return;
+      }
+
+      try {
+        const result: ModelCatalogSyncResult = await syncProviderCatalog(
+          provider,
+          apiKey,
+          { force: Boolean(message.force) }
+        );
+        sendResponse({ success: true, result });
+      } catch (error) {
+        sendResponse({
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Could not refresh available AI models.",
+        });
+      }
+      return;
+    }
+
+    if (message?.type === MSG.CLEAR_MODEL_CATALOG_NOTICE) {
+      await clearModelCatalogNotice();
+      sendResponse({ success: true });
+      return;
+    }
+
     if (message?.type === MSG.RUN_COMPATIBILITY_CHECK) {
       const tabId =
         typeof message.tabId === "number" ? message.tabId : undefined;

@@ -160,7 +160,7 @@ describe("migrateAiSettings", () => {
       model: "gemini-2.5-flash",
     });
 
-    expect(migrated.model).toBe("gemini-3.5-flash");
+    expect(migrated.model).toBe("gemini-3.6-flash");
   });
 
   it("replaces retired OpenAI models with current defaults", () => {

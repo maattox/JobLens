@@ -1,10 +1,13 @@
+import {
+  DEFAULT_FIELD_EXTRACT_MODELS as CURATED_FIELD_EXTRACT_MODELS,
+} from "./aiModelDefaults";
 import type { AiProvider } from "./types";
 
 /** Preferred cheap/lite models for the job-field verification extract pass. */
 export const DEFAULT_FIELD_EXTRACT_MODELS: Record<AiProvider, string> = {
-  openai: "gpt-5.4-mini",
-  anthropic: "claude-haiku-4-5",
-  gemini: "gemini-3.1-flash-lite",
+  openai: CURATED_FIELD_EXTRACT_MODELS.openai,
+  anthropic: CURATED_FIELD_EXTRACT_MODELS.anthropic,
+  gemini: CURATED_FIELD_EXTRACT_MODELS.gemini,
 };
 
 export type FieldExtractModelMap = Record<AiProvider, string>;
@@ -37,9 +40,10 @@ export function normalizeFieldExtractModels(raw: unknown): FieldExtractModelMap 
 }
 
 const LITE_PATTERNS: Record<AiProvider, RegExp[]> = {
-  openai: [/mini/i, /nano/i],
+  openai: [/luna/i, /mini/i, /nano/i],
   anthropic: [/haiku/i],
-  gemini: [/lite/i, /flash/i],
+  // Prefer explicit lite ids — do not match every "flash" model.
+  gemini: [/flash-lite/i, /lite/i],
 };
 
 /**

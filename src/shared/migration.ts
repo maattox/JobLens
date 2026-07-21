@@ -212,9 +212,11 @@ export function migratePreferences(raw: unknown): UserPreferences {
 const RETIRED_MODEL_ALIASES: Partial<Record<AiProvider, Record<string, string>>> = {
   openai: {
     "gpt-4o-mini": "gpt-5.4-mini",
-    "gpt-4o": "gpt-5.4",
-    "gpt-4.1": "gpt-5.4",
-    "gpt-4.1-mini": "gpt-4.1-mini",
+    "gpt-4o": "gpt-5.6",
+    "gpt-4.1": "gpt-5.6",
+    "gpt-4.1-mini": "gpt-5.4-mini",
+    "gpt-5.4": "gpt-5.6",
+    "gpt-5.5": "gpt-5.6",
   },
   anthropic: {
     "claude-3-5-haiku-latest": "claude-haiku-4-5",
@@ -222,9 +224,13 @@ const RETIRED_MODEL_ALIASES: Partial<Record<AiProvider, Record<string, string>>>
     "claude-sonnet-4-20250514": "claude-sonnet-5",
   },
   gemini: {
-    "gemini-1.5-flash": "gemini-3.5-flash",
-    "gemini-2.5-flash": "gemini-3.5-flash",
-    "gemini-2.5-pro": "gemini-3.1-pro-preview",
+    "gemini-1.5-flash": "gemini-3.6-flash",
+    "gemini-2.5-flash": "gemini-3.6-flash",
+    "gemini-2.5-pro": "gemini-3.6-flash",
+    "gemini-3-flash-preview": "gemini-3.6-flash",
+    "gemini-3.5-flash": "gemini-3.6-flash",
+    "gemini-3.1-flash-lite": "gemini-3.5-flash-lite",
+    "gemini-3.1-pro-preview": "gemini-3.6-flash",
   },
 };
 
@@ -248,9 +254,8 @@ export function migrateAiSettings(raw: unknown): AiSettings {
     requestedModel && RETIRED_MODEL_ALIASES[provider]?.[requestedModel]
       ? RETIRED_MODEL_ALIASES[provider]![requestedModel]
       : requestedModel;
-  const model = allowedModels.includes(aliasedModel)
-    ? aliasedModel
-    : allowedModels[0];
+  // Keep curated, aliased, or user-entered custom model ids.
+  const model = aliasedModel || allowedModels[0];
 
   return {
     provider,

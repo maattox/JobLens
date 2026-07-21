@@ -1,3 +1,8 @@
+import {
+  AI_MODEL_OPTIONS as CURATED_AI_MODEL_OPTIONS,
+  DEFAULT_MODEL_BY_PROVIDER,
+} from "./aiModelDefaults";
+
 export type RemoteWorkOption = "remote" | "hybrid" | "onsite" | "noPreference";
 
 export type WorkScheduleOption =
@@ -24,6 +29,32 @@ export type JobSource =
   | "unsupported";
 
 export type AiProvider = "openai" | "anthropic" | "gemini";
+
+/** Result of syncing the live provider model list into local storage. */
+export interface ModelCatalogSyncResult {
+  provider: AiProvider;
+  models: string[];
+  /** True when the stored model list differed from the live API list. */
+  changed: boolean;
+  /** True when the user's selected model was replaced because it left the catalog. */
+  modelSwitched: boolean;
+  previousModel: string;
+  currentModel: string;
+  /** True when a live API refresh ran (false when skipped due to TTL cache). */
+  refreshed: boolean;
+  /** Human-readable notice for the UI when changed/switched. */
+  notice: string | null;
+}
+
+export interface ModelCatalogNotice {
+  message: string;
+  updatedAt: string;
+  provider: AiProvider;
+}
+
+export interface ModelCatalogMeta {
+  lastSyncedAt: Partial<Record<AiProvider, number>>;
+}
 
 export interface JobSection {
   heading: string;
@@ -351,17 +382,13 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
 export const DEFAULT_AI_SETTINGS: AiSettings = {
   provider: "gemini",
   apiKey: "",
-  model: "gemini-3.5-flash",
+  model: DEFAULT_MODEL_BY_PROVIDER.gemini,
 };
 
 export const AI_MODEL_OPTIONS: Record<AiProvider, string[]> = {
-  openai: ["gpt-5.4-mini", "gpt-5.5", "gpt-5.4", "gpt-4.1-mini"],
-  anthropic: ["claude-haiku-4-5", "claude-sonnet-5", "claude-opus-4-8"],
-  gemini: [
-    "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
-    "gemini-3.1-pro-preview",
-  ],
+  openai: [...CURATED_AI_MODEL_OPTIONS.openai],
+  anthropic: [...CURATED_AI_MODEL_OPTIONS.anthropic],
+  gemini: [...CURATED_AI_MODEL_OPTIONS.gemini],
 };
 
 export const AI_PROVIDER_LINKS: Record<AiProvider, { label: string; url: string }> = {

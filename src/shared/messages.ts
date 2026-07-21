@@ -4,6 +4,9 @@ export const MSG = {
   RUN_COMPATIBILITY_CHECK: "RUN_COMPATIBILITY_CHECK",
   EXTRACT_FROM_RESUME: "EXTRACT_FROM_RESUME",
   ASK_FOLLOW_UP: "ASK_FOLLOW_UP",
+  /** Refresh provider model list from the live API (optional force). */
+  SYNC_MODEL_CATALOG: "SYNC_MODEL_CATALOG",
+  CLEAR_MODEL_CATALOG_NOTICE: "CLEAR_MODEL_CATALOG_NOTICE",
   GET_STORAGE: "GET_STORAGE",
   SET_STORAGE: "SET_STORAGE",
   /** Dev-only debug telemetry (no-op when DEBUG_TELEMETRY_ENABLED is false). */

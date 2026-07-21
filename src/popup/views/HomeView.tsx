@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import {
+  buildSelectableModels,
+  formatModelOptionLabel,
+} from "../../shared/customModels";
+import {
   AI_MODEL_OPTIONS,
   type AiSettings,
 } from "../../shared/types";
@@ -26,6 +30,9 @@ export function HomeView() {
     preferences,
     aiSettings,
     modelCatalog,
+    modelCatalogNotice,
+    customModels,
+    dismissModelCatalogNotice,
     saveAiSettings,
     privacyAcknowledged,
     acknowledgePrivacy,
@@ -48,6 +55,17 @@ export function HomeView() {
     setModelDraft(aiSettings.model);
   }, [aiSettings.model]);
 
+  useEffect(() => {
+    const models = buildSelectableModels(
+      modelCatalog[aiSettings.provider] ?? [],
+      customModels[aiSettings.provider]
+    );
+    if (!models.length) return;
+    if (!models.includes(modelDraft)) {
+      setModelDraft(models[0]);
+    }
+  }, [modelCatalog, customModels, aiSettings.provider, modelDraft]);
+
   const ready =
     profile.setupComplete && preferences.setupComplete && aiSettings.apiKey.trim();
 
@@ -56,12 +74,15 @@ export function HomeView() {
     urlsMatch(lastScraped?.url ?? "", activeTabUrl);
 
   const provider = aiSettings.provider;
+  const providerCustom = customModels[provider];
   const catalogModels = modelCatalog[provider];
-  const models = catalogModels.length
-    ? catalogModels.includes(modelDraft)
-      ? catalogModels
-      : [modelDraft, ...catalogModels]
-    : AI_MODEL_OPTIONS[provider];
+  const models = buildSelectableModels(
+    catalogModels.length ? catalogModels : AI_MODEL_OPTIONS[provider],
+    providerCustom
+  );
+  const modelSelectValue = models.includes(modelDraft)
+    ? modelDraft
+    : models[0] ?? "";
 
   async function handleModelChange(model: string) {
     setModelDraft(model);
@@ -86,13 +107,13 @@ export function HomeView() {
         </label>
         <select
           id="home-model"
-          value={modelDraft}
+          value={modelSelectValue}
           disabled={loading || !aiSettings.apiKey.trim()}
           onChange={(e) => void handleModelChange(e.target.value)}
         >
           {models.map((model) => (
             <option key={model} value={model}>
-              {model}
+              {formatModelOptionLabel(model, providerCustom)}
             </option>
           ))}
         </select>
@@ -102,6 +123,19 @@ export function HomeView() {
         <div className="loading-panel" aria-live="polite">
           <span className="loading-spinner" aria-hidden="true" />
           <span className="loading-text">{checkPhase || "Working…"}</span>
+        </div>
+      )}
+
+      {modelCatalogNotice && (
+        <div className="info-banner" style={{ marginTop: 12 }} role="status">
+          <p style={{ margin: "0 0 8px" }}>{modelCatalogNotice.message}</p>
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={() => void dismissModelCatalogNotice()}
+          >
+            Dismiss
+          </button>
         </div>
       )}
 

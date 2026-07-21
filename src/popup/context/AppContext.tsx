@@ -23,6 +23,15 @@ import {
   migrateAiSettings,
 } from "../../shared/migration";
 import { normalizeModelCatalog } from "../../shared/modelCatalog";
+import {
+  buildEmptyCustomModels,
+  normalizeCustomModels,
+  normalizeModelId,
+  removeCustomModel,
+  upsertCustomModel,
+  type CustomModelEntry,
+  type CustomModelsByProvider,
+} from "../../shared/customModels";
 import type { ShellMode } from "../../shared/shell";
 import { STORAGE_KEYS } from "../../shared/storage";
 import type {
@@ -34,6 +43,8 @@ import type {
   JobFieldsExtractResult,
   JobObject,
   ModelCatalog,
+  ModelCatalogNotice,
+  ModelCatalogSyncResult,
   ResumeExtractResult,
   UserPreferences,
   UserProfile,
@@ -67,6 +78,8 @@ interface AppContextValue {
   preferences: UserPreferences;
   aiSettings: AiSettings;
   modelCatalog: ModelCatalog;
+  modelCatalogNotice: ModelCatalogNotice | null;
+  customModels: CustomModelsByProvider;
   lastScraped: JobObject | null;
   checkHistory: CheckHistoryItem[];
   latestCheck: CompatibilityCheckResponse | null;
@@ -81,10 +94,24 @@ interface AppContextValue {
   saveProfile: (profile: UserProfile) => Promise<void>;
   savePreferences: (preferences: UserPreferences) => Promise<void>;
   saveAiSettings: (settings: AiSettings) => Promise<void>;
+  addCustomModel: (
+    provider: AiSettings["provider"],
+    entry: Omit<CustomModelEntry, "createdAt">
+  ) => Promise<CustomModelEntry | null>;
+  removeCustomModelEntry: (
+    provider: AiSettings["provider"],
+    modelId: string
+  ) => Promise<void>;
   acknowledgePrivacy: () => Promise<void>;
   completeApiKeySetup: () => void;
   completeOnboarding: () => Promise<void>;
   setStatus: (message: string, type?: "" | "success" | "error") => void;
+  syncModelCatalog: (options?: {
+    force?: boolean;
+    provider?: AiSettings["provider"];
+    apiKey?: string;
+  }) => Promise<ModelCatalogSyncResult | null>;
+  dismissModelCatalogNotice: () => Promise<void>;
   runCompatibilityCheck: (forceRecheck?: boolean) => Promise<void>;
   continueCompatibilityCheck: (
     verifiedFields: JobFieldsExtractResult
@@ -130,6 +157,11 @@ export function AppProvider({
   const [modelCatalog, setModelCatalog] = useState<ModelCatalog>(
     normalizeModelCatalog(null)
   );
+  const [modelCatalogNotice, setModelCatalogNotice] =
+    useState<ModelCatalogNotice | null>(null);
+  const [customModels, setCustomModels] = useState<CustomModelsByProvider>(
+    buildEmptyCustomModels()
+  );
   const [lastScraped, setLastScraped] = useState<JobObject | null>(null);
   const [checkHistory, setCheckHistory] = useState<CheckHistoryItem[]>([]);
   const [latestCheck, setLatestCheck] =
@@ -174,6 +206,8 @@ export function AppProvider({
       STORAGE_KEYS.preferences,
       STORAGE_KEYS.aiSettings,
       STORAGE_KEYS.modelCatalog,
+      STORAGE_KEYS.modelCatalogNotice,
+      STORAGE_KEYS.customModels,
       STORAGE_KEYS.lastScraped,
       STORAGE_KEYS.checkHistory,
       STORAGE_KEYS.privacyAcknowledged,
@@ -199,6 +233,17 @@ export function AppProvider({
       }
     }
     setModelCatalog(normalizeModelCatalog(data[STORAGE_KEYS.modelCatalog]));
+    setCustomModels(normalizeCustomModels(data[STORAGE_KEYS.customModels]));
+    const storedNotice = data[STORAGE_KEYS.modelCatalogNotice];
+    if (
+      storedNotice &&
+      typeof storedNotice === "object" &&
+      typeof (storedNotice as ModelCatalogNotice).message === "string"
+    ) {
+      setModelCatalogNotice(storedNotice as ModelCatalogNotice);
+    } else {
+      setModelCatalogNotice(null);
+    }
     if (data[STORAGE_KEYS.lastScraped]) {
       const migrated = migrateJobObject(data[STORAGE_KEYS.lastScraped]);
       if (migrated) setLastScraped(migrated);
@@ -235,7 +280,19 @@ export function AppProvider({
   }, [shellMode]);
 
   useEffect(() => {
-    void loadStorage();
+    void loadStorage().then(() => {
+      void chrome.storage.local.get(STORAGE_KEYS.aiSettings).then((data) => {
+        const migrated = migrateAiSettings(data[STORAGE_KEYS.aiSettings]);
+        if (migrated.apiKey.trim()) {
+          void chrome.runtime.sendMessage({
+            type: MSG.SYNC_MODEL_CATALOG,
+            force: false,
+            provider: migrated.provider,
+            apiKey: migrated.apiKey,
+          });
+        }
+      });
+    });
     debugInfo("popup", "lifecycle", "Popup/app shell mounted", { shellMode });
   }, [loadStorage, shellMode]);
 
@@ -278,6 +335,23 @@ export function AppProvider({
           normalizeModelCatalog(changes[STORAGE_KEYS.modelCatalog].newValue)
         );
       }
+      if (changes[STORAGE_KEYS.customModels]) {
+        setCustomModels(
+          normalizeCustomModels(changes[STORAGE_KEYS.customModels].newValue)
+        );
+      }
+      if (changes[STORAGE_KEYS.modelCatalogNotice]) {
+        const next = changes[STORAGE_KEYS.modelCatalogNotice].newValue;
+        if (
+          next &&
+          typeof next === "object" &&
+          typeof (next as ModelCatalogNotice).message === "string"
+        ) {
+          setModelCatalogNotice(next as ModelCatalogNotice);
+        } else {
+          setModelCatalogNotice(null);
+        }
+      }
       if (changes[STORAGE_KEYS.aiSettings]) {
         const migrated = migrateAiSettings(changes[STORAGE_KEYS.aiSettings].newValue);
         setAiSettings(migrated);
@@ -303,7 +377,129 @@ export function AppProvider({
     await chrome.storage.local.set({ [STORAGE_KEYS.aiSettings]: next });
     if (next.apiKey.trim()) {
       setApiKeyGateActive(false);
+      try {
+        const response = await chrome.runtime.sendMessage({
+          type: MSG.SYNC_MODEL_CATALOG,
+          force: true,
+          provider: next.provider,
+          apiKey: next.apiKey,
+        });
+        const stored = await chrome.storage.local.get([
+          STORAGE_KEYS.modelCatalog,
+          STORAGE_KEYS.aiSettings,
+          STORAGE_KEYS.modelCatalogNotice,
+        ]);
+        setModelCatalog(normalizeModelCatalog(stored[STORAGE_KEYS.modelCatalog]));
+        if (stored[STORAGE_KEYS.aiSettings]) {
+          setAiSettings(migrateAiSettings(stored[STORAGE_KEYS.aiSettings]));
+        }
+        if (response?.success && response.result?.notice) {
+          setModelCatalogNotice({
+            message: response.result.notice,
+            updatedAt: new Date().toISOString(),
+            provider: response.result.provider,
+          });
+        } else if (
+          stored[STORAGE_KEYS.modelCatalogNotice] &&
+          typeof stored[STORAGE_KEYS.modelCatalogNotice] === "object"
+        ) {
+          setModelCatalogNotice(
+            stored[STORAGE_KEYS.modelCatalogNotice] as ModelCatalogNotice
+          );
+        }
+      } catch {
+        // Keep saved settings even if catalog sync fails.
+      }
     }
+  }, []);
+
+  const addCustomModel = useCallback(
+    async (
+      provider: AiSettings["provider"],
+      entry: Omit<CustomModelEntry, "createdAt">
+    ): Promise<CustomModelEntry | null> => {
+      const id = normalizeModelId(entry.id);
+      if (!id) return null;
+      const next = upsertCustomModel(customModels, provider, {
+        ...entry,
+        id,
+      });
+      const saved = next[provider].find((item) => item.id === id) ?? null;
+      setCustomModels(next);
+      await chrome.storage.local.set({ [STORAGE_KEYS.customModels]: next });
+      return saved;
+    },
+    [customModels]
+  );
+
+  const removeCustomModelEntry = useCallback(
+    async (provider: AiSettings["provider"], modelId: string) => {
+      const id = normalizeModelId(modelId);
+      const next = removeCustomModel(customModels, provider, id);
+      setCustomModels(next);
+      await chrome.storage.local.set({ [STORAGE_KEYS.customModels]: next });
+      if (aiSettings.provider === provider && aiSettings.model === id) {
+        const fallback =
+          (modelCatalog[provider] && modelCatalog[provider][0]) ||
+          DEFAULT_AI_SETTINGS.model;
+        const updated = { ...aiSettings, model: fallback };
+        setAiSettings(updated);
+        await chrome.storage.local.set({ [STORAGE_KEYS.aiSettings]: updated });
+      }
+    },
+    [aiSettings, customModels, modelCatalog]
+  );
+
+  const syncModelCatalog = useCallback(
+    async (options?: {
+      force?: boolean;
+      provider?: AiSettings["provider"];
+      apiKey?: string;
+    }): Promise<ModelCatalogSyncResult | null> => {
+      const provider = options?.provider ?? aiSettings.provider;
+      const apiKey = options?.apiKey ?? aiSettings.apiKey;
+      if (!apiKey.trim()) return null;
+
+      try {
+        const response = await chrome.runtime.sendMessage({
+          type: MSG.SYNC_MODEL_CATALOG,
+          force: Boolean(options?.force),
+          provider,
+          apiKey,
+        });
+        if (!response?.success) {
+          return null;
+        }
+        const result = response.result as ModelCatalogSyncResult;
+
+        // Pull fresh catalog + settings so dropdowns update immediately.
+        const stored = await chrome.storage.local.get([
+          STORAGE_KEYS.modelCatalog,
+          STORAGE_KEYS.aiSettings,
+        ]);
+        setModelCatalog(normalizeModelCatalog(stored[STORAGE_KEYS.modelCatalog]));
+        if (stored[STORAGE_KEYS.aiSettings]) {
+          setAiSettings(migrateAiSettings(stored[STORAGE_KEYS.aiSettings]));
+        }
+
+        if (result.notice) {
+          setModelCatalogNotice({
+            message: result.notice,
+            updatedAt: new Date().toISOString(),
+            provider: result.provider,
+          });
+        }
+        return result;
+      } catch {
+        return null;
+      }
+    },
+    [aiSettings.apiKey, aiSettings.provider]
+  );
+
+  const dismissModelCatalogNotice = useCallback(async () => {
+    setModelCatalogNotice(null);
+    await chrome.runtime.sendMessage({ type: MSG.CLEAR_MODEL_CATALOG_NOTICE });
   }, []);
 
   const acknowledgePrivacy = useCallback(async () => {
@@ -414,7 +610,7 @@ export function AppProvider({
       if (shellMode === "tab") return;
 
       setLoading(true);
-      setCheckPhase("Gathering job information…");
+      setCheckPhase("Extracting and verifying job details…");
       setStatus("");
       debugInfo("popup", "check", "User started compatibility check", {
         forceRecheck,
@@ -424,6 +620,11 @@ export function AppProvider({
         if (!privacyAcknowledged) {
           setStatus("Acknowledge the privacy notice before running a check.", "error");
           return;
+        }
+
+        const syncResult = await syncModelCatalog({ force: false });
+        if (syncResult?.notice) {
+          setStatus(syncResult.notice, "success");
         }
 
         const [tab] = await chrome.tabs.query({
@@ -457,7 +658,7 @@ export function AppProvider({
         setCheckPhase("");
       }
     },
-    [handleCheckResponse, privacyAcknowledged, setStatus, shellMode]
+    [handleCheckResponse, privacyAcknowledged, setStatus, shellMode, syncModelCatalog]
   );
 
   const continueCompatibilityCheck = useCallback(
@@ -605,6 +806,8 @@ export function AppProvider({
     setPreferences(DEFAULT_PREFERENCES);
     setAiSettings(DEFAULT_AI_SETTINGS);
     setModelCatalog(normalizeModelCatalog(null));
+    setModelCatalogNotice(null);
+    setCustomModels(buildEmptyCustomModels());
     setLastScraped(null);
     setCheckHistory([]);
     setLatestCheck(null);
@@ -626,6 +829,8 @@ export function AppProvider({
       preferences,
       aiSettings,
       modelCatalog,
+      modelCatalogNotice,
+      customModels,
       lastScraped,
       checkHistory,
       latestCheck,
@@ -640,10 +845,14 @@ export function AppProvider({
       saveProfile,
       savePreferences,
       saveAiSettings,
+      addCustomModel,
+      removeCustomModelEntry,
       acknowledgePrivacy,
       completeApiKeySetup,
       completeOnboarding,
       setStatus,
+      syncModelCatalog,
+      dismissModelCatalogNotice,
       runCompatibilityCheck,
       continueCompatibilityCheck,
       clearFieldVerification,
@@ -665,6 +874,8 @@ export function AppProvider({
       preferences,
       aiSettings,
       modelCatalog,
+      modelCatalogNotice,
+      customModels,
       lastScraped,
       checkHistory,
       latestCheck,
@@ -679,10 +890,14 @@ export function AppProvider({
       saveProfile,
       savePreferences,
       saveAiSettings,
+      addCustomModel,
+      removeCustomModelEntry,
       acknowledgePrivacy,
       completeApiKeySetup,
       completeOnboarding,
       setStatus,
+      syncModelCatalog,
+      dismissModelCatalogNotice,
       runCompatibilityCheck,
       continueCompatibilityCheck,
       clearFieldVerification,

@@ -10,10 +10,11 @@ describe("pickFieldExtractModel", () => {
     expect(
       pickFieldExtractModel("gemini", [
         "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
         "gemini-3.1-pro-preview",
       ])
-    ).toBe("gemini-3.1-flash-lite");
+    ).toBe("gemini-3.5-flash-lite");
   });
 
   it("picks a new lite-like model when the preferred id is gone", () => {
@@ -28,7 +29,7 @@ describe("pickFieldExtractModel", () => {
 
   it("prefers mini models for OpenAI", () => {
     expect(
-      pickFieldExtractModel("openai", ["gpt-5.5", "gpt-5.4-mini", "gpt-5.4"])
+      pickFieldExtractModel("openai", ["gpt-5.6", "gpt-5.6-luna", "gpt-5.4-mini"])
     ).toBe(DEFAULT_FIELD_EXTRACT_MODELS.openai);
   });
 });

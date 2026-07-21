@@ -12,7 +12,7 @@ JobLens collects and stores the following information **on your device only** (v
 |------|---------|
 | Profile (skills, work experience, projects, education, certifications, optional notes, optional resume text extracted from a PDF you upload) | Compatibility checks and resume-assisted profile fill |
 | Job preferences (minimum pay, commute, remote work, schedule, job type) | Local pre-checks and compatibility analysis |
-| AI settings (provider choice, model name, and your API key) | Sending requests you initiate to your chosen AI provider |
+| AI settings (provider choice, model name, API key, and any models you add manually) | Sending requests you initiate to your chosen AI provider |
 | Extracted job listing data from pages you check | Running checks and showing results |
 | Compatibility reports and follow-up Q&A history | Showing past results in History |
 | Privacy acknowledgment and onboarding flags | Remembering that you accepted the in-product notice and completed or skipped setup |
