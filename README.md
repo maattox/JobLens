@@ -22,6 +22,7 @@ When a new release is published, download the new zip, replace the old folder (o
 - Optional **Fill from resume** (PDF → review before saving)
 - Local pre-checks for clear mismatches (e.g. pay / remote work) before spending an AI request
 - History of past checks; open full reports in a dedicated tab
+- Reopening JobLens on a listing you already checked shows that saved report without a new AI request
 - Best extraction on Indeed and GovernmentJobs; partial support for ZipRecruiter and LinkedIn; on-demand fallback on other sites when you run a check
 
 JobLens is not affiliated with or endorsed by Indeed, GovernmentJobs, ZipRecruiter, or LinkedIn.

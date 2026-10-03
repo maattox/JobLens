@@ -1,6 +1,6 @@
 # Privacy Policy for JobLens
 
-Last updated: 2026-07-21
+Last updated: 2026-10-03
 
 JobLens is a browser extension that helps you evaluate how well a job listing matches your profile and preferences using an AI provider API key that you provide (bring your own key).
 
@@ -14,7 +14,7 @@ JobLens collects and stores the following information **on your device only** (v
 | Job preferences (minimum pay, commute, remote work, schedule, job type) | Local pre-checks and compatibility analysis |
 | AI settings (provider choice, model name, API key, and any models you add manually) | Sending requests you initiate to your chosen AI provider |
 | Extracted job listing data from pages you check | Running checks and showing results |
-| Compatibility reports and follow-up Q&A history | Showing past results in History |
+| Compatibility reports and follow-up Q&A history | Showing past results in History, and restoring a saved report when you reopen JobLens on that listing |
 | Privacy acknowledgment and onboarding flags | Remembering that you accepted the in-product notice and completed or skipped setup |
 
 JobLens does **not** run analytics, advertising, or remote telemetry. Developer-only debug tools (when enabled in local builds) stay on your device and are not included in store releases.
@@ -50,7 +50,7 @@ Before the first compatibility check or resume extraction, JobLens shows an in-p
 
 ## Website Content Access
 
-On supported job sites (GovernmentJobs, Indeed, ZipRecruiter, LinkedIn), JobLens may inject a content script that stays idle until you run a check. On other sites, when you click **Check Job Compatibility**, JobLens may temporarily read the active tab (with your gesture) to extract listing text. Page content is used only for that user-initiated feature.
+On supported job sites (GovernmentJobs, Indeed, ZipRecruiter, LinkedIn), JobLens may inject a content script that stays idle until you run a check or reopen JobLens on a page that might match a saved report. Opening JobLens compares the active tab’s address with compatibility reports stored on your device. When the address matches, the saved report opens and the page is not read again. When it does not match and you have saved reports, JobLens may read the current listing locally to see whether a saved report still applies. That lookup does not contact your AI provider. On other sites, the same local read can happen when you reopen JobLens with saved reports, and when you click **Check Job Compatibility**, JobLens may temporarily read the active tab (with your gesture) to extract listing text. Page content is used only to restore a saved report or to run a check you start.
 
 ## Data Sharing
 

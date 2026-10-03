@@ -175,6 +175,10 @@ export function HomeView() {
           You can also run a check on other sites when you click the button above;
           extraction may be less accurate on unsupported pages
         </p>
+        <p className="home-instructions-note">
+          If you already checked the listing in this tab, reopening JobLens shows
+          that saved report without a new AI request
+        </p>
       </div>
 
       {showReliabilityWarning && (

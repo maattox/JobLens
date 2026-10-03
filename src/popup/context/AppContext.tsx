@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -87,6 +88,7 @@ interface AppContextValue {
   status: string;
   statusType: "" | "success" | "error";
   loading: boolean;
+  restoringCachedReport: boolean;
   followUpLoading: boolean;
   checkPhase: string;
   privacyAcknowledged: boolean;
@@ -171,6 +173,10 @@ export function AppProvider({
   const [status, setStatusState] = useState("");
   const [statusType, setStatusType] = useState<"" | "success" | "error">("");
   const [loading, setLoading] = useState(false);
+  const [restoringCachedReport, setRestoringCachedReport] = useState(
+    shellMode === "popup"
+  );
+  const userNavigatedRef = useRef(false);
   const [followUpLoading, setFollowUpLoading] = useState(false);
   const [checkPhase, setCheckPhase] = useState("");
   const [historySort, setHistorySortState] = useState<HistorySortOption>("overall");
@@ -194,13 +200,17 @@ export function AppProvider({
       if (apiKeyGateActive && next !== "apiKeySetup") {
         return;
       }
+      userNavigatedRef.current = true;
       debugInfo("popup", "navigation", `View → ${next}`);
       setViewState(next);
     },
     [apiKeyGateActive]
   );
 
-  const loadStorage = useCallback(async () => {
+  const loadStorage = useCallback(async (): Promise<{
+    initialView: ViewName;
+    historyCount: number;
+  }> => {
     const data = await chrome.storage.local.get([
       STORAGE_KEYS.profile,
       STORAGE_KEYS.preferences,
@@ -248,8 +258,10 @@ export function AppProvider({
       const migrated = migrateJobObject(data[STORAGE_KEYS.lastScraped]);
       if (migrated) setLastScraped(migrated);
     }
+    let historyCount = 0;
     if (data[STORAGE_KEYS.checkHistory]) {
       const migrated = migrateCheckHistory(data[STORAGE_KEYS.checkHistory]);
+      historyCount = migrated.length;
       setCheckHistory(migrated);
       if (migrated.length !== (data[STORAGE_KEYS.checkHistory] as unknown[])?.length) {
         void chrome.storage.local.set({
@@ -274,27 +286,81 @@ export function AppProvider({
 
     const hasApiKey = Boolean(migratedAi.apiKey.trim());
     setApiKeyGateActive(!hasApiKey);
-    setViewState(
-      resolveInitialView(shellMode, hasApiKey, onboarded)
-    );
+    const initialView = resolveInitialView(shellMode, hasApiKey, onboarded);
+    setViewState(initialView);
+    return { initialView, historyCount };
   }, [shellMode]);
 
   useEffect(() => {
-    void loadStorage().then(() => {
-      void chrome.storage.local.get(STORAGE_KEYS.aiSettings).then((data) => {
-        const migrated = migrateAiSettings(data[STORAGE_KEYS.aiSettings]);
-        if (migrated.apiKey.trim()) {
-          void chrome.runtime.sendMessage({
-            type: MSG.SYNC_MODEL_CATALOG,
-            force: false,
-            provider: migrated.provider,
-            apiKey: migrated.apiKey,
+    let cancelled = false;
+
+    void (async () => {
+      const { initialView, historyCount } = await loadStorage();
+      if (cancelled) return;
+
+      const shouldRestore =
+        shellMode === "popup" && initialView === "home" && historyCount > 0;
+
+      if (shouldRestore) {
+        try {
+          const [tab] = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
           });
+          const response: CompatibilityCheckResponse | undefined =
+            await chrome.runtime.sendMessage({
+              type: MSG.LOOKUP_CACHED_REPORT,
+              tabId: tab?.id,
+            });
+
+          if (
+            !cancelled &&
+            !userNavigatedRef.current &&
+            response?.success &&
+            response.report &&
+            response.job
+          ) {
+            setLatestCheck(response);
+            setLastScraped(response.job);
+            setViewState("result");
+            setStatus(
+              "Loaded a previously cached compatibility check.",
+              "success"
+            );
+            debugInfo("popup", "check", "Opened saved report for current listing", {
+              historyKey: response.historyKey,
+              reportId: response.report.reportId,
+            });
+          }
+        } catch (error) {
+          debugInfo(
+            "popup",
+            "check",
+            "Saved report lookup skipped",
+            summarizeError(error)
+          );
         }
-      });
-    });
+      }
+
+      if (!cancelled) setRestoringCachedReport(false);
+
+      const data = await chrome.storage.local.get(STORAGE_KEYS.aiSettings);
+      const migrated = migrateAiSettings(data[STORAGE_KEYS.aiSettings]);
+      if (!cancelled && migrated.apiKey.trim()) {
+        void chrome.runtime.sendMessage({
+          type: MSG.SYNC_MODEL_CATALOG,
+          force: false,
+          provider: migrated.provider,
+          apiKey: migrated.apiKey,
+        });
+      }
+    })();
+
     debugInfo("popup", "lifecycle", "Popup/app shell mounted", { shellMode });
-  }, [loadStorage, shellMode]);
+    return () => {
+      cancelled = true;
+    };
+  }, [loadStorage, setStatus, shellMode]);
 
   useEffect(() => {
     if (!isDebugTelemetryEnabled()) return;
@@ -838,6 +904,7 @@ export function AppProvider({
       status,
       statusType,
       loading,
+      restoringCachedReport,
       followUpLoading,
       checkPhase,
       privacyAcknowledged,
@@ -883,6 +950,7 @@ export function AppProvider({
       status,
       statusType,
       loading,
+      restoringCachedReport,
       followUpLoading,
       checkPhase,
       privacyAcknowledged,

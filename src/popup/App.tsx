@@ -13,7 +13,7 @@ import { SettingsView } from "./views/SettingsView";
 import { SetupView } from "./views/SetupView";
 
 export default function App() {
-  const { view, shellMode } = useApp();
+  const { view, shellMode, restoringCachedReport } = useApp();
 
   return (
     <div className={`app-shell ${shellMode === "tab" ? "app-shell-tab" : ""}`}>
@@ -22,7 +22,15 @@ export default function App() {
       <main className="app-main">
         {view === "apiKeySetup" && <ApiKeySetupView />}
         {view === "setup" && <SetupView />}
-        {view === "home" && shellMode === "popup" && <HomeView />}
+        {view === "home" && shellMode === "popup" && restoringCachedReport && (
+          <div className="loading-panel" aria-live="polite" aria-busy="true">
+            <span className="loading-spinner" aria-hidden="true" />
+            <span className="loading-text">Looking for a saved report…</span>
+          </div>
+        )}
+        {view === "home" && shellMode === "popup" && !restoringCachedReport && (
+          <HomeView />
+        )}
         {view === "fieldVerification" && shellMode === "popup" && (
           <FieldVerificationView />
         )}

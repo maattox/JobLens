@@ -9,7 +9,7 @@ import {
 import { AiRequestError } from "./ai/errors";
 import { isSessionExpiredError } from "./ai/types";
 import { collectRuntimeSnapshot } from "./debugSnapshot";
-import { resolveJobTab, sendTabMessage } from "./tabUtils";
+import { getTabPageUrl, resolveJobTab, sendTabMessage } from "./tabUtils";
 import {
   appendDebugEntry,
   bindDebugAppender,
@@ -44,6 +44,7 @@ import {
   parseResumeExtractResult,
 } from "../shared/schema";
 import {
+  migrateCheckHistory,
   migratePreferences,
   migrateProfile,
   migrateAiSettings,
@@ -76,7 +77,11 @@ import {
   DEFAULT_PREFERENCES,
   DEFAULT_PROFILE,
 } from "../shared/types";
-import { getJobKey } from "../shared/utils";
+import {
+  findCachedHistoryItem,
+  findHistoryItemByListingUrl,
+  getJobKey,
+} from "../shared/utils";
 
 if (isDebugTelemetryEnabled()) {
   configureDebugLogger({ messageType: MSG.DEBUG_LOG });
@@ -251,6 +256,74 @@ async function getCachedCheck(key: string): Promise<CheckHistoryItem | null> {
     []
   );
   return history.find((item) => item.key === key) ?? null;
+}
+
+function toCachedCheckResponse(item: CheckHistoryItem): CompatibilityCheckResponse {
+  return {
+    success: true,
+    report: { ...item.report, cached: true },
+    job: item.job,
+    isCached: true,
+    reportViewSource: "liveCache",
+    followUps: item.followUps ?? [],
+    aiConversation: item.aiConversation,
+    historyKey: item.key,
+  };
+}
+
+/**
+ * Restore a saved report for the active tab without an AI call.
+ * Identical tab addresses match from history alone. A local extract runs
+ * only when the address differs, so a stable job number can still match.
+ */
+async function lookupCachedReport(
+  tabId?: number
+): Promise<CompatibilityCheckResponse> {
+  const history = migrateCheckHistory(
+    await getFromStorage<unknown>(STORAGE_KEYS.checkHistory, [])
+  );
+  if (!history.length || typeof tabId !== "number") {
+    return { success: true };
+  }
+
+  let tab: chrome.tabs.Tab;
+  try {
+    tab = await resolveJobTab(tabId);
+  } catch (error) {
+    debugInfo(
+      "background",
+      "check",
+      "Saved report lookup skipped",
+      summarizeError(error)
+    );
+    return { success: true };
+  }
+
+  const byUrl = findHistoryItemByListingUrl(getTabPageUrl(tab) ?? "", history);
+  if (byUrl) {
+    debugInfo("background", "check", "Restoring saved report from tab URL", {
+      key: byUrl.key,
+    });
+    return toCachedCheckResponse(byUrl);
+  }
+
+  try {
+    const job = await extractJobFromTab(tab);
+    const match = findCachedHistoryItem(job, history);
+    if (!match) return { success: true };
+    debugInfo("background", "check", "Restoring saved report from extracted job", {
+      key: match.key,
+    });
+    return toCachedCheckResponse(match);
+  } catch (error) {
+    debugInfo(
+      "background",
+      "check",
+      "Saved report extract lookup skipped",
+      summarizeError(error)
+    );
+    return { success: true };
+  }
 }
 
 async function saveCheckToHistory(
@@ -675,16 +748,7 @@ async function handleCompatibilityCheck(
         key,
         reportId: cached.reportId ?? cached.report?.reportId,
       });
-      return {
-        success: true,
-        report: { ...cached.report, cached: true },
-        job: cached.job,
-        isCached: true,
-        reportViewSource: "liveCache",
-        followUps: cached.followUps ?? [],
-        aiConversation: cached.aiConversation,
-        historyKey: key,
-      };
+      return toCachedCheckResponse(cached);
     }
   }
 
@@ -937,6 +1001,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message?.type === MSG.CLEAR_MODEL_CATALOG_NOTICE) {
       await clearModelCatalogNotice();
       sendResponse({ success: true });
+      return;
+    }
+
+    if (message?.type === MSG.LOOKUP_CACHED_REPORT) {
+      const tabId =
+        typeof message.tabId === "number" ? message.tabId : undefined;
+      const result = await lookupCachedReport(tabId);
+      sendResponse(result);
       return;
     }
 

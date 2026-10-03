@@ -2,6 +2,8 @@ export const MSG = {
   EXTRACT_JOB: "EXTRACT_JOB",
   SCRAPE_JOB: "SCRAPE_JOB",
   RUN_COMPATIBILITY_CHECK: "RUN_COMPATIBILITY_CHECK",
+  /** Local history lookup for the active tab. Does not call an AI provider. */
+  LOOKUP_CACHED_REPORT: "LOOKUP_CACHED_REPORT",
   EXTRACT_FROM_RESUME: "EXTRACT_FROM_RESUME",
   ASK_FOLLOW_UP: "ASK_FOLLOW_UP",
   /** Refresh provider model list from the live API (optional force). */

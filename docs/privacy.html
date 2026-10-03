@@ -73,7 +73,7 @@
     <main>
       <nav><a href="index.html">← JobLens</a></nav>
       <h1>Privacy Policy for JobLens</h1>
-      <p class="meta">Last updated: 2026-07-21</p>
+      <p class="meta">Last updated: 2026-10-03</p>
 
       <p>
         JobLens is a browser extension that helps you evaluate how well a job
@@ -124,7 +124,7 @@
           </tr>
           <tr>
             <td>Compatibility reports and follow-up Q&amp;A history</td>
-            <td>Showing past results in History</td>
+            <td>Showing past results in History, and restoring a saved report when you reopen JobLens on that listing</td>
           </tr>
           <tr>
             <td>Privacy acknowledgment and onboarding flags</td>
@@ -214,10 +214,18 @@
       <h2>Website Content Access</h2>
       <p>
         On supported job sites (GovernmentJobs, Indeed, ZipRecruiter, LinkedIn),
-        JobLens may inject a content script that stays idle until you run a check.
-        On other sites, when you click <strong>Check Job Compatibility</strong>,
-        JobLens may temporarily read the active tab (with your gesture) to extract
-        listing text. Page content is used only for that user-initiated feature.
+        JobLens may inject a content script that stays idle until you run a check
+        or reopen JobLens on a page that might match a saved report. Opening
+        JobLens compares the active tab’s address with compatibility reports
+        stored on your device. When the address matches, the saved report opens
+        and the page is not read again. When it does not match and you have saved
+        reports, JobLens may read the current listing locally to see whether a
+        saved report still applies. That lookup does not contact your AI provider.
+        On other sites, the same local read can happen when you reopen JobLens
+        with saved reports, and when you click
+        <strong>Check Job Compatibility</strong>, JobLens may temporarily read the
+        active tab (with your gesture) to extract listing text. Page content is
+        used only to restore a saved report or to run a check you start.
       </p>
 
       <h2>Data Sharing</h2>
